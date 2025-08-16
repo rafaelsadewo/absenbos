@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>???</title>
+    <!-- Tailwind CSS CDN untuk styling yang mudah dan responsif -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Inter dari Google Fonts untuk tampilan teks yang modern -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        /* Gaya dasar untuk body dan layout utama */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f7f3f0; /* Latar belakang krem lembut */
+            display: flex;
+            flex-direction: column; /* Mengubah menjadi kolom agar konten bisa di-scroll */
+            justify-content: flex-start; /* Konten dimulai dari atas */
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            /* overflow: hidden; <-- Properti ini dihapus untuk memungkinkan scrolling */
+            position: relative; /* Diperlukan untuk posisi absolut balon */
+        }
+        /* Container utama untuk konten website */
+        .container {
+            max-width: 800px;
+            background-color: #ffffff;
+            border-radius: 25px; /* Sudut membulat yang lebih besar */
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15); /* Bayangan lebih dalam */
+            padding: 40px;
+            text-align: center;
+            position: relative;
+            z-index: 10; /* Memastikan konten di atas balon */
+            margin-top: auto; /* Memastikan container di tengah secara vertikal jika konten pendek */
+            margin-bottom: auto; /* Memastikan container di tengah secara vertikal jika konten pendek */
+        }
+
+        /* Gaya khusus untuk tampilan hitung mundur */
+        #countdownContainer {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 200px; /* Memberi tinggi minimum agar terlihat bagus */
+        }
+        #countdown {
+            font-size: 3rem; /* Ukuran font lebih besar untuk angka hitung mundur */
+            font-weight: 800; /* Tebal ekstra */
+            color: #ff69b4; /* Warna pink cerah */
+            letter-spacing: -1px;
+            margin-bottom: 20px;
+        }
+        #countdown span {
+            display: inline-block;
+            margin: 0 10px;
+            background-color: #ffe6f0; /* Latar belakang pink sangat muda */
+            padding: 10px 15px;
+            border-radius: 10px;
+            box-shadow: inset 0 2px 5px rgba(0,0,0,0.05); /* Bayangan dalam halus */
+        }
+        #countdown .label {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #8a2be2; /* Warna ungu untuk label waktu */
+            display: block;
+            margin-top: 5px;
+        }
+
+        /* Gaya untuk konten ulang tahun (akan muncul di Hari-H) */
+        #birthdayContent {
+            display: none; /* Sembunyikan secara default */
+        }
+        .header-title {
+            color: #ff69b4; /* Warna pink cerah */
+            font-size: 2.8rem;
+            font-weight: 800;
+            margin-bottom: 25px;
+            line-height: 1.2;
+        }
+        .message-box {
+            background-color: #fff0f5; /* Warna pink sangat muda */
+            border-radius: 20px;
+            padding: 30px;
+            margin-top: 30px;
+            font-size: 1.15rem;
+            color: #333333;
+            line-height: 1.7;
+            text-align: left;
+        }
+        .footer-text {
+            color: #666666;
+            margin-top: 35px;
+            font-size: 0.95rem;
+        }
+        .button {
+            display: inline-block;
+            background-color: #8a2be2; /* Warna ungu untuk tombol */
+            color: #ffffff;
+            padding: 14px 30px;
+            border-radius: 35px;
+            text-decoration: none;
+            font-weight: 700;
+            margin-top: 30px;
+            transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
+            box-shadow: 0 8px 20px rgba(138, 43, 226, 0.4); /* Bayangan tombol */
+        }
+        .button:hover {
+            background-color: #6a0dad; /* Warna ungu lebih gelap saat hover */
+            transform: translateY(-3px); /* Efek naik sedikit saat hover */
+            box-shadow: 0 12px 25px rgba(138, 43, 226, 0.5); /* Bayangan lebih intens saat hover */
+        }
+
+        /* Penyesuaian responsif untuk layar kecil */
+        @media (max-width: 640px) {
+            .header-title {
+                font-size: 2rem;
+            }
+            #countdown {
+                font-size: 2rem;
+            }
+            #countdown span {
+                padding: 8px 12px;
+                margin: 0 5px;
+            }
+            #countdown .label {
+                font-size: 1rem;
+            }
+            .message-box {
+                font-size: 1rem;
+                padding: 20px;
+            }
+            .container {
+                padding: 25px;
+            }
+        }
+
+        /* Animasi Balon */
+        .balloon-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden; /* Tetap hidden untuk container balon agar balon tidak keluar dari area ini */
+            pointer-events: none; /* Memungkinkan klik menembus balon */
+            z-index: 5; /* Di bawah konten utama */
+        }
+
+        .balloon {
+            position: absolute;
+            bottom: -100px; /* Balon mulai dari bawah layar */
+            font-size: 40px; /* Ukuran emoji balon */
+            animation: floatUp 15s infinite ease-out; /* Animasi mengambang ke atas */
+            opacity: 0.7; /* Sedikit transparan */
+        }
+
+        /* Mengatur posisi dan durasi animasi acak untuk setiap balon */
+        .balloon:nth-child(1) { left: 10%; animation-delay: 0s; animation-duration: 12s; }
+        .balloon:nth-child(2) { left: 20%; animation-delay: 2s; animation-duration: 14s; }
+        .balloon:nth-child(3) { left: 30%; animation-delay: 1s; animation-duration: 11s; }
+        .balloon:nth-child(4) { left: 40%; animation-delay: 3s; animation-duration: 13s; }
+        .balloon:nth-child(5) { left: 50%; animation-delay: 0.5s; animation-duration: 10s; }
+        .balloon:nth-child(6) { left: 60%; animation-delay: 2.5s; animation-duration: 15s; }
+        .balloon:nth-child(7) { left: 70%; animation-delay: 1.5s; animation-duration: 12.5s; }
+        .balloon:nth-child(8) { left: 80%; animation-delay: 4s; animation-duration: 16s; }
+        .balloon:nth-child(9) { left: 5%; animation-delay: 0s; animation-duration: 13s; }
+        .balloon:nth-child(10) { left: 90%; animation-delay: 3.5s; animation-duration: 11.5s; }
+
+        /* Keyframe animasi untuk balon mengambang */
+        @keyframes floatUp {
+            0% {
+                transform: translateY(0) rotate(0deg);
+                opacity: 0.7;
+            }
+            100% {
+                transform: translateY(-100vh) rotate(360deg); /* Mengambang ke atas viewport */
+                opacity: 0; /* Memudar saat mencapai atas */
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Container untuk balon-balon yang akan muncul -->
+    <div class="balloon-container" id="balloonContainer">
+        <!-- Balon-balon akan diinjeksikan di sini oleh JavaScript saat Hari-H -->
+    </div>
+
+    <div class="container">
+        <!-- Bagian Hitung Mundur (Tampil sebelum 17 Agustus) -->
+        <div id="countdownContainer">
+            <h1 class="header-title text-4xl mb-6">Menghitung Mundur Menuju Hari Besok</h1>
+            <div id="countdown" class="text-6xl font-extrabold text-pink-500">
+                <span class="days-val">00<span class="label">Hari</span></span> :
+                <span class="hours-val">00<span class="label">Jam</span></span> :
+                <span class="minutes-val">00<span class="label">Menit</span></span> :
+                <span class="seconds-val">00<span class="label">Detik</span></span>
+            </div>
+            <p class="text-gray-600 text-lg mt-4">Bersiap untuk kejutan!</p>
+        </div>
+
+        <!-- Bagian Konten Ulang Tahun (Tersembunyi sebelum 17 Agustus) -->
+        <div id="birthdayContent" class="hidden">
+            <!-- Judul utama website -->
+            <h1 class="header-title">
+                Selamat Ulang Tahun yang AYAH 💓 <br>
+            </h1>
+
+            <!-- Area untuk gambar Bapakmu -->
+            <div class="relative w-full max-w-sm mx-auto rounded-xl overflow-hidden shadow-lg transform hover:scale-105 transition-transform duration-300">
+                <!-- Placeholder image. Ganti dengan URL foto Bapakmu yang asli dan lucu ya! -->
+                <!-- Contoh: <img src="URL_FOTO_BAPAKMU_DISINI.jpg" -->
+                <img src="fotbar2.jpg" alt="" class="w-full h-auto object-cover rounded-xl">
+                <div class="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent rounded-xl"></div>
+                <p class="absolute bottom-4 left-4 text-white text-lg font-semibold drop-shadow-md">Foto Bareng Ceritanya</p>
+            </div>
+
+            <!-- Kotak pesan ulang tahun -->
+            <div class="message-box">
+                <p>Halo Ayah,</p>
+                <p>Selamat ulang tahun ayah yang ke-47 ! Rasanya baru kemarin tanggal 16 agustus, sekarang ayah udah ulang tahun. Terima kasih ya ayah, udah jadi ayah terterbaik, pahlawan tanpa tanda jasa anjay 😎 , dan selalu siap sedia jadi "ATM" berjalan 🤣😍.</p>
+                <p>Semoga ayah selalu sehat, panjang umur, bahagia terus, rezekinya melimpah, dan semua impian ayah bisa terwujud. SAYANG AYAH 💓💓💓 </p>
+                <p class="mt-4 text-sm text-gray-500">
+            
+                </p>
+            </div>
+
+            <!-- Tombol atau link tambahan (opsional) -->
+            <!-- Kamu bisa tambahkan link ke galeri foto lain atau video jika ada -->
+
+            <!-- Pesan penutup -->
+        </div>
+    </div>
+
+    <!-- Elemen Audio untuk lagu ulang tahun -->
+    <audio id="birthdaySong" src="lagu.mp3" preload="auto" loop></audio>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Tentukan tanggal ulang tahun Bapakmu
+            // Format: 'YYYY-MM-DDTHH:MM:SS'
+            // Pastikan ini adalah tanggal 17 Agustus 2025 pukul 00:00:00
+            const birthdayDate = new Date('2025-08-17T00:00:00');
+            const countdownContainer = document.getElementById('countdownContainer');
+            const birthdayContent = document.getElementById('birthdayContent');
+            const birthdaySong = document.getElementById('birthdaySong');
+            const balloonContainer = document.getElementById('balloonContainer');
+
+            // Function untuk membuat dan menambahkan elemen balon (menggunakan emoji)
+            function createBalloons() {
+                const colors = ['🎈', '🎉', '🎁', '🎂']; // Emoji balon dan dekorasi party
+                for (let i = 0; i < 15; i++) { // Membuat 15 balon
+                    const balloon = document.createElement('span');
+                    balloon.classList.add('balloon');
+                    // Pilih emoji balon secara acak
+                    balloon.innerHTML = colors[Math.floor(Math.random() * colors.length)];
+                    // Atur posisi horizontal awal balon secara acak
+                    balloon.style.left = `${Math.random() * 100}%`;
+                    // Atur delay animasi agar balon muncul tidak bersamaan
+                    balloon.style.animationDelay = `${Math.random() * 5}s`;
+                    // Atur durasi animasi secara acak
+                    balloon.style.animationDuration = `${10 + Math.random() * 5}s`;
+                    balloonContainer.appendChild(balloon);
+                }
+            }
+
+            // Function untuk menampilkan konten ulang tahun dan memutar lagu
+            function showBirthdayContent() {
+                // Sembunyikan container hitung mundur
+                countdownContainer.style.display = 'none';
+                // Tampilkan konten ulang tahun
+                birthdayContent.style.display = 'block';
+
+                // Putar lagu ulang tahun
+                // Perhatian: Autoplay audio bisa diblokir oleh beberapa browser modern
+                // demi pengalaman pengguna. Mungkin perlu interaksi pengguna (misal klik)
+                // pertama kali agar lagu bisa otomatis berputar.
+                birthdaySong.volume = 1.0; // Atur volume lagu (0.0 - 1.0)
+                birthdaySong.play().catch(e => console.log("Autoplay blocked:", e)); // Tangani jika autoplay diblokir
+
+                // Panggil function untuk membuat balon
+                createBalloons();
+            }
+
+            // Function utama untuk mengupdate hitung mundur
+            function updateCountdown() {
+                const now = new Date(); // Waktu saat ini
+                const timeLeft = birthdayDate - now; // Sisa waktu dalam milidetik
+
+                if (timeLeft <= 0) {
+                    // Jika waktu sudah habis (sudah Hari-H atau lewat)
+                    clearInterval(countdownInterval); // Hentikan hitung mundur
+                    showBirthdayContent(); // Tampilkan konten ulang tahun
+                    return; // Keluar dari function
+                }
+
+                // Hitung hari, jam, menit, dan detik yang tersisa
+                const days = Math.floor(timeLeft / (1000 * 60 * 60 * 24));
+                const hours = Math.floor((timeLeft % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
+
+                // Update teks di elemen HTML hitung mundur
+                document.querySelector('.days-val').textContent = String(days).padStart(2, '0');
+                document.querySelector('.hours-val').textContent = String(hours).padStart(2, '0');
+                document.querySelector('.minutes-val').textContent = String(minutes).padStart(2, '0');
+                document.querySelector('.seconds-val').textContent = String(seconds).padStart(2, '0');
+            }
+
+            // Jalankan updateCountdown setiap detik (1000ms)
+            const countdownInterval = setInterval(updateCountdown, 1000);
+
+            // Panggil updateCountdown sekali saat halaman dimuat
+            // Ini untuk memastikan hitung mundur langsung tampil tanpa jeda
+            updateCountdown();
+        });
+    </script>
+</body>
+</html>
